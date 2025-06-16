@@ -38,13 +38,14 @@ export async function updateLayoutWithFonts(
 
   for (const font of fonts) {
     const fontTag = generateFontLinkTag(font)
-    const fontUrlPattern = new RegExp(
-      `<link[^>]*href=['"]https://fonts\\.googleapis\\.com/css2\\?[^'"]*family=${font.name.replace(/\s+/g, '\\+?')}[^'"]*['"][^>]*>`,
+    const escapedFontName = font.name.replace(/\s+/g, '\\+?')
+    const fontBlockPattern = new RegExp(
+      `(\\s*\\{/\\*[^}]*\\*/\\}\\s*\\n)?\\s*(\\{/\\*[^}]*eslint-disable[^}]*\\*/\\}\\s*\\n)?\\s*<link[^>]*href=['"]https://fonts\\.googleapis\\.com/css2\\?[^'"]*family=${escapedFontName}[^'"]*['"][^>]*>`,
       'i',
     )
 
-    if (fontUrlPattern.test(updatedContent)) {
-      updatedContent = updatedContent.replace(fontUrlPattern, fontTag.trim())
+    if (fontBlockPattern.test(updatedContent)) {
+      updatedContent = updatedContent.replace(fontBlockPattern, fontTag.trim())
       console.log(`Updated existing font link for: ${font.name}`)
     } else {
       const headClosePattern = /<\/head>/i
