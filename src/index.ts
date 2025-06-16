@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import packageJson from '../package.json' assert { type: 'json' }
-import { installTheme } from './commands/install.js'
+import { addTheme } from './commands/add.js'
 
 async function main() {
   const program = new Command()
@@ -11,13 +11,11 @@ async function main() {
     .version(packageJson.version)
 
   program
-    .command('install <theme>')
-    .description(
-      'Install a tweakcn theme and update layout with required fonts',
-    )
+    .command('add <theme>')
+    .description('Add a tweakcn theme and update layout with required fonts')
     .option('-y, --yes', 'Skip confirmation prompts')
     .action(async (theme, options) => {
-      await installTheme(theme, options)
+      await addTheme(theme, options)
     })
 
   program.command('*', { hidden: true }).action(() => {
