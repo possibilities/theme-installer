@@ -1,16 +1,29 @@
 import { Command } from 'commander'
 import packageJson from '../package.json' assert { type: 'json' }
+import { installTheme } from './commands/install.js'
 
 async function main() {
   const program = new Command()
 
   program
     .name('theme-installer')
-    .description('A theme installer CLI tool')
+    .description('Install tweakcn themes with automatic font setup for Next.js')
     .version(packageJson.version)
-    .action(() => {
-      console.log('hello world')
+
+  program
+    .command('install <theme>')
+    .description(
+      'Install a tweakcn theme and update layout with required fonts',
+    )
+    .option('-y, --yes', 'Skip confirmation prompts')
+    .action(async (theme, options) => {
+      await installTheme(theme, options)
     })
+
+  program.command('*', { hidden: true }).action(() => {
+    console.error('Unknown command. Use --help to see available commands.')
+    process.exit(1)
+  })
 
   try {
     program.exitOverride()
