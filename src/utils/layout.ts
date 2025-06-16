@@ -65,6 +65,7 @@ export async function updateLayoutWithFonts(
 
   const fontTag = generateCombinedFontLinkTag(fonts)
   const headClosePattern = /<\/head>/i
+  const bodyOpenPattern = /<body[^>]*>/i
 
   if (headClosePattern.test(updatedContent)) {
     updatedContent = updatedContent.replace(
@@ -73,8 +74,16 @@ export async function updateLayoutWithFonts(
     )
     const fontNames = fonts.map(font => font.name).join(', ')
     console.log(`Added combined font links for: ${fontNames}`)
+  } else if (bodyOpenPattern.test(updatedContent)) {
+    const headTagWithFonts = `<head>\n      ${fontTag}\n    </head>\n    `
+    updatedContent = updatedContent.replace(
+      bodyOpenPattern,
+      match => `${headTagWithFonts}${match}`,
+    )
+    const fontNames = fonts.map(font => font.name).join(', ')
+    console.log(`Added <head> tag with combined font links for: ${fontNames}`)
   } else {
-    throw new Error('Could not find </head> tag in layout file')
+    throw new Error('Could not find </head> tag or <body> tag in layout file')
   }
 
   await fs.writeFile(layoutPath, updatedContent)
