@@ -77,7 +77,17 @@ export async function filterValidGoogleFonts(
     const isValid = await validateGoogleFont(font)
 
     if (isValid) {
-      const weights = fontWeights.get(font)
+      let weights = fontWeights.get(font)
+
+      if (!weights) {
+        const fontWithPlus = font.replace(/\s+/g, '+')
+        weights = fontWeights.get(fontWithPlus)
+      }
+
+      if (!weights) {
+        const fontWithSpace = font.replace(/\+/g, ' ')
+        weights = fontWeights.get(fontWithSpace)
+      }
 
       if (!weights) {
         throw new Error(`Font weights not found for Google Font: ${font}`)
