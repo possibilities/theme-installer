@@ -90,7 +90,8 @@ export async function filterValidGoogleFonts(
       }
 
       if (!weights) {
-        throw new Error(`Font weights not found for Google Font: ${font}`)
+        console.log(`Skipping system font (no weights found): ${font}`)
+        continue
       }
 
       validFonts.push({
@@ -98,7 +99,7 @@ export async function filterValidGoogleFonts(
         weights,
       })
     } else {
-      console.log(`Skipping non-Google font: ${font}`)
+      console.log(`Skipping system font (not in Google Fonts): ${font}`)
     }
   }
 
