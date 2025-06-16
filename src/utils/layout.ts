@@ -22,6 +22,35 @@ async function findLayoutFile(): Promise<string | null> {
   return null
 }
 
+function cleanupExistingFontLines(content: string, fontName: string): string {
+  let cleanedContent = content
+
+  const preconnectGoogleApisPattern =
+    /<link\s+rel=['"']preconnect['"']\s+href=['"']https:\/\/fonts\.googleapis\.com['"']\s*\/?>[\s\n]*/gi
+  cleanedContent = cleanedContent.replace(preconnectGoogleApisPattern, '')
+
+  const preconnectGstaticPattern =
+    /<link\s+[^>]*rel=['"']preconnect['"'][^>]*href=['"']https:\/\/fonts\.gstatic\.com['"'][^>]*>[\s\n]*/gi
+  cleanedContent = cleanedContent.replace(preconnectGstaticPattern, '')
+
+  const chatGptCommentPattern =
+    /\s*\{?\/\*\s*See:\s*https:\/\/chatgpt\.com\/c\/[^*]+\*\/\}?[\s\n]*/gi
+  cleanedContent = cleanedContent.replace(chatGptCommentPattern, '')
+
+  const eslintCommentPattern =
+    /\s*\{?\/\*\s*eslint-disable[^*]+\*\/\}?[\s\n]*/gi
+  cleanedContent = cleanedContent.replace(eslintCommentPattern, '')
+
+  const escapedFontName = fontName.replace(/\s+/g, '\\+?')
+  const fontLinkPattern = new RegExp(
+    `<link[^>]*href=['"']https:\\/\\/fonts\\.googleapis\\.com\\/css2\\?[^'"]*family=${escapedFontName}[^'"]*['"'][^>]*>[\\s\\n]*`,
+    'gi',
+  )
+  cleanedContent = cleanedContent.replace(fontLinkPattern, '')
+
+  return cleanedContent
+}
+
 export async function updateLayoutWithFonts(
   fonts: GoogleFont[],
 ): Promise<void> {
@@ -37,28 +66,19 @@ export async function updateLayoutWithFonts(
   let updatedContent = content
 
   for (const font of fonts) {
+    updatedContent = cleanupExistingFontLines(updatedContent, font.name)
+
     const fontTag = generateFontLinkTag(font)
-    const escapedFontName = font.name.replace(/\s+/g, '\\+?')
-    const fontBlockPattern = new RegExp(
-      `(\\s*\\{/\\*[^}]*\\*/\\}\\s*\\n)?\\s*(\\{/\\*[^}]*eslint-disable[^}]*\\*/\\}\\s*\\n)?\\s*<link[^>]*href=['"]https://fonts\\.googleapis\\.com/css2\\?[^'"]*family=${escapedFontName}[^'"]*['"][^>]*>`,
-      'i',
-    )
+    const headClosePattern = /<\/head>/i
 
-    if (fontBlockPattern.test(updatedContent)) {
-      updatedContent = updatedContent.replace(fontBlockPattern, fontTag.trim())
-      console.log(`Updated existing font link for: ${font.name}`)
+    if (headClosePattern.test(updatedContent)) {
+      updatedContent = updatedContent.replace(
+        headClosePattern,
+        `${fontTag}\n      </head>`,
+      )
+      console.log(`Added font links for: ${font.name}`)
     } else {
-      const headClosePattern = /<\/head>/i
-
-      if (headClosePattern.test(updatedContent)) {
-        updatedContent = updatedContent.replace(
-          headClosePattern,
-          `${fontTag}\n      </head>`,
-        )
-        console.log(`Added new font link for: ${font.name}`)
-      } else {
-        throw new Error('Could not find </head> tag in layout file')
-      }
+      throw new Error('Could not find </head> tag in layout file')
     }
   }
 
