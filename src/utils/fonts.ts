@@ -47,16 +47,17 @@ export function generateGoogleFontUrl(font: GoogleFont): string {
 
 export function generateFontLinkTag(font: GoogleFont): string {
   const url = generateGoogleFontUrl(font)
-  return `        <link rel='preconnect' href='https://fonts.googleapis.com' />
-        <link
-          rel='preconnect'
-          href='https://fonts.gstatic.com'
-          crossOrigin='anonymous'
-        />
-        {/* See: https://chatgpt.com/c/681ca606-b550-8001-88c7-84fe99e7dcaf */}
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link
-          href='${url}'
-          rel='stylesheet'
-        />`
+  return `
+      <link rel='preconnect' href='https://fonts.googleapis.com' />
+      <link
+        rel='preconnect'
+        href='https://fonts.gstatic.com'
+        crossOrigin='anonymous'
+      />
+      {/* See: https://chatgpt.com/c/681ca606-b550-8001-88c7-84fe99e7dcaf */}
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link
+        href='${url}'
+        rel='stylesheet'
+      />`
 }
