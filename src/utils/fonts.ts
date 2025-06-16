@@ -111,10 +111,17 @@ export function generateGoogleFontUrl(font: GoogleFont): string {
   return `https://fonts.googleapis.com/css2?family=${urlSafeName}:${font.weights}&display=optional`
 }
 
-export function generateFontLinkTag(font: GoogleFont): string {
-  const url = generateGoogleFontUrl(font)
-  return `
-      <link rel='preconnect' href='https://fonts.googleapis.com' />
+export function generateCombinedFontLinkTag(fonts: GoogleFont[]): string {
+  const familyParams = fonts
+    .map(font => {
+      const urlSafeName = font.name.replace(/\s+/g, '+')
+      return `family=${urlSafeName}:${font.weights}`
+    })
+    .join('&')
+
+  const url = `https://fonts.googleapis.com/css2?${familyParams}&display=optional`
+
+  return `<link rel='preconnect' href='https://fonts.googleapis.com' />
       <link
         rel='preconnect'
         href='https://fonts.gstatic.com'
