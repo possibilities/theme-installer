@@ -3,7 +3,10 @@ import { promisify } from 'util'
 import prompts from 'prompts'
 import { checkGitStatus } from '../utils/git.js'
 import { fetchThemeData, extractFontsFromTheme } from '../utils/theme.js'
-import { filterValidGoogleFonts } from '../utils/fonts.js'
+import {
+  filterValidGoogleFonts,
+  fetchEditorFontWeights,
+} from '../utils/fonts.js'
 import { updateLayoutWithFonts } from '../utils/layout.js'
 import {
   isValidNextJsProject,
@@ -66,8 +69,11 @@ export async function addTheme(themeName: string, options: AddOptions) {
 
     console.log(`Found ${fonts.size} font(s): ${Array.from(fonts).join(', ')}`)
 
+    console.log('\nFetching font weights from editor...')
+    const fontWeights = await fetchEditorFontWeights()
+
     console.log('\nValidating fonts against Google Fonts...')
-    const validFonts = await filterValidGoogleFonts(fonts)
+    const validFonts = await filterValidGoogleFonts(fonts, fontWeights)
 
     if (validFonts.length === 0) {
       console.log('No Google Fonts found in theme')

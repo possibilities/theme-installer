@@ -7,6 +7,54 @@ export interface GoogleFont {
   weights: string
 }
 
+export async function fetchEditorFontWeights(): Promise<Map<string, string>> {
+  const editorUrl = 'https://tweakcn.com/editor/theme'
+
+  try {
+    const response = await fetch(editorUrl)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch editor page: ${response.statusText}`)
+    }
+
+    const html = await response.text()
+
+    const googleFontsUrlMatch = html.match(
+      /https:\/\/fonts\.googleapis\.com\/css2\?[^"']+/,
+    )
+    if (!googleFontsUrlMatch) {
+      throw new Error('Could not find Google Fonts URL in editor page')
+    }
+
+    const googleFontsUrl = googleFontsUrlMatch[0].replace(/&amp;/g, '&')
+
+    return parseFontWeightsFromUrl(googleFontsUrl)
+  } catch (error: any) {
+    throw new Error(`Failed to fetch font weights: ${error.message}`)
+  }
+}
+
+export function parseFontWeightsFromUrl(url: string): Map<string, string> {
+  const fontWeights = new Map<string, string>()
+
+  const urlParams = new URL(url).searchParams
+  const familyParams = urlParams.getAll('family')
+
+  for (const familyParam of familyParams) {
+    const colonIndex = familyParam.indexOf(':')
+
+    if (colonIndex === -1) {
+      const fontName = familyParam.replace(/\+/g, ' ')
+      fontWeights.set(fontName, '')
+    } else {
+      const fontName = familyParam.substring(0, colonIndex).replace(/\+/g, ' ')
+      const weightSpec = familyParam.substring(colonIndex + 1)
+      fontWeights.set(fontName, weightSpec)
+    }
+  }
+
+  return fontWeights
+}
+
 export async function validateGoogleFont(fontName: string): Promise<boolean> {
   const urlSafeName = fontName.replace(/\s+/g, '+')
   const testUrl = `https://fonts.googleapis.com/css2?family=${urlSafeName}:wght@100..900&display=optional`
@@ -21,6 +69,7 @@ export async function validateGoogleFont(fontName: string): Promise<boolean> {
 
 export async function filterValidGoogleFonts(
   fonts: Set<string>,
+  fontWeights: Map<string, string>,
 ): Promise<GoogleFont[]> {
   const validFonts: GoogleFont[] = []
 
@@ -28,9 +77,15 @@ export async function filterValidGoogleFonts(
     const isValid = await validateGoogleFont(font)
 
     if (isValid) {
+      const weights = fontWeights.get(font)
+
+      if (!weights) {
+        throw new Error(`Font weights not found for Google Font: ${font}`)
+      }
+
       validFonts.push({
         name: font,
-        weights: 'wght@100..900',
+        weights,
       })
     } else {
       console.log(`Skipping non-Google font: ${font}`)
