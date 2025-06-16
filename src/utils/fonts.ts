@@ -57,7 +57,7 @@ export function parseFontWeightsFromUrl(url: string): Map<string, string> {
 
 export async function validateGoogleFont(fontName: string): Promise<boolean> {
   const urlSafeName = fontName.replace(/\s+/g, '+')
-  const testUrl = `https://fonts.googleapis.com/css2?family=${urlSafeName}:wght@100..900&display=optional`
+  const testUrl = `https://fonts.googleapis.com/css2?family=${urlSafeName}&display=optional`
 
   try {
     const response = await fetch(testUrl, { method: 'HEAD' })
