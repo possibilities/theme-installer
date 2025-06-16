@@ -5,15 +5,24 @@ import { checkGitStatus } from '../utils/git.js'
 import { fetchThemeData, extractFontsFromTheme } from '../utils/theme.js'
 import { filterValidGoogleFonts } from '../utils/fonts.js'
 import { updateLayoutWithFonts } from '../utils/layout.js'
+import {
+  isValidNextJsProject,
+  getNextJsValidationError,
+} from '../utils/nextjs.js'
 
 const execAsync = promisify(exec)
 
-export interface InstallOptions {
+export interface AddOptions {
   yes?: boolean
 }
 
-export async function installTheme(themeName: string, options: InstallOptions) {
+export async function addTheme(themeName: string, options: AddOptions) {
   try {
+    if (!isValidNextJsProject()) {
+      console.error(`\n❌ ${getNextJsValidationError()}`)
+      process.exit(1)
+    }
+
     console.log('Checking git status...')
     await checkGitStatus()
 
@@ -21,17 +30,17 @@ export async function installTheme(themeName: string, options: InstallOptions) {
       const { proceed } = await prompts({
         type: 'confirm',
         name: 'proceed',
-        message: `Install theme "${themeName}" and update layout with fonts?`,
+        message: `Add theme "${themeName}" and update layout with fonts?`,
         initial: true,
       })
 
       if (!proceed) {
-        console.log('Installation cancelled')
+        console.log('Operation cancelled')
         return
       }
     }
 
-    console.log(`\nInstalling theme: ${themeName}`)
+    console.log(`\nAdding theme: ${themeName}`)
     console.log('Running shadcn command...')
 
     const shadcnCommand = `pnpm dlx shadcn@latest add https://tweakcn.com/r/themes/${themeName}.json --yes`
@@ -70,7 +79,7 @@ export async function installTheme(themeName: string, options: InstallOptions) {
     console.log('\nUpdating layout file...')
     await updateLayoutWithFonts(validFonts)
 
-    console.log('\n✅ Theme installed successfully!')
+    console.log('\n✅ Theme added successfully!')
     console.log(`Theme: ${themeData.title || themeName}`)
     console.log(`Fonts added: ${validFonts.map(f => f.name).join(', ')}`)
   } catch (error: any) {
