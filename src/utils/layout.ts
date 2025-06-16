@@ -1,6 +1,6 @@
 import fs from 'fs/promises'
 import path from 'path'
-import { GoogleFont, generateFontLinkTag } from './fonts.js'
+import { GoogleFont, generateCombinedFontLinkTag } from './fonts.js'
 
 async function findLayoutFile(): Promise<string | null> {
   const possiblePaths = [
@@ -22,7 +22,7 @@ async function findLayoutFile(): Promise<string | null> {
   return null
 }
 
-function cleanupExistingFontLines(content: string, fontName: string): string {
+function cleanupExistingFontLines(content: string): string {
   let cleanedContent = content
 
   const preconnectGoogleApisPattern =
@@ -41,11 +41,8 @@ function cleanupExistingFontLines(content: string, fontName: string): string {
     /\s*\{?\/\*\s*eslint-disable[^*]+\*\/\}?[\s\n]*/gi
   cleanedContent = cleanedContent.replace(eslintCommentPattern, '')
 
-  const escapedFontName = fontName.replace(/\s+/g, '\\+?')
-  const fontLinkPattern = new RegExp(
-    `<link[^>]*href=['"']https:\\/\\/fonts\\.googleapis\\.com\\/css2\\?[^'"]*family=${escapedFontName}[^'"]*['"'][^>]*>[\\s\\n]*`,
-    'gi',
-  )
+  const fontLinkPattern =
+    /<link[^>]*href=['"']https:\/\/fonts\.googleapis\.com\/css2\?[^'"]+['"'][^>]*>[\s\n]*/gi
   cleanedContent = cleanedContent.replace(fontLinkPattern, '')
 
   return cleanedContent
@@ -63,23 +60,21 @@ export async function updateLayoutWithFonts(
   }
 
   const content = await fs.readFile(layoutPath, 'utf-8')
-  let updatedContent = content
 
-  for (const font of fonts) {
-    updatedContent = cleanupExistingFontLines(updatedContent, font.name)
+  let updatedContent = cleanupExistingFontLines(content)
 
-    const fontTag = generateFontLinkTag(font)
-    const headClosePattern = /<\/head>/i
+  const fontTag = generateCombinedFontLinkTag(fonts)
+  const headClosePattern = /<\/head>/i
 
-    if (headClosePattern.test(updatedContent)) {
-      updatedContent = updatedContent.replace(
-        headClosePattern,
-        `${fontTag}\n      </head>`,
-      )
-      console.log(`Added font links for: ${font.name}`)
-    } else {
-      throw new Error('Could not find </head> tag in layout file')
-    }
+  if (headClosePattern.test(updatedContent)) {
+    updatedContent = updatedContent.replace(
+      headClosePattern,
+      `\n      ${fontTag}\n      </head>`,
+    )
+    const fontNames = fonts.map(font => font.name).join(', ')
+    console.log(`Added combined font links for: ${fontNames}`)
+  } else {
+    throw new Error('Could not find </head> tag in layout file')
   }
 
   await fs.writeFile(layoutPath, updatedContent)
