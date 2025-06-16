@@ -53,26 +53,7 @@ export function extractFontsFromTheme(theme: ThemeData): Set<string> {
 
         for (const font of fontStack) {
           const cleanFont = font.replace(/['"]/g, '').trim()
-
-          const systemFonts = [
-            'monospace',
-            'sans-serif',
-            'serif',
-            'cursive',
-            'fantasy',
-            'system-ui',
-            '-apple-system',
-            'BlinkMacSystemFont',
-            'Segoe UI',
-            'Roboto',
-            'Helvetica Neue',
-            'Arial',
-            'Apple Color Emoji',
-            'Segoe UI Emoji',
-            'Segoe UI Symbol',
-          ]
-
-          if (!systemFonts.includes(cleanFont) && cleanFont) {
+          if (cleanFont) {
             fonts.add(cleanFont)
           }
         }
