@@ -1,6 +1,4 @@
 import fetch from 'node-fetch'
-import fs from 'fs/promises'
-import path from 'path'
 
 export interface GoogleFont {
   name: string

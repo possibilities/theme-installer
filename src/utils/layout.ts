@@ -1,5 +1,4 @@
 import fs from 'fs/promises'
-import path from 'path'
 import { GoogleFont, generateCombinedFontLinkTag } from './fonts.js'
 
 async function findLayoutFile(): Promise<string | null> {
