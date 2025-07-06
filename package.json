@@ -3,7 +3,7 @@
   "version": "0.1.1",
   "author": "Mike Bannister <notimpossiblemike@gmail.com>",
   "license": "MIT",
-  "description": "Theme Installer",
+  "description": "Theme Install CLI",
   "type": "module",
   "bin": {
     "theme-installer": "./dist/cli.js"
